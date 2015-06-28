@@ -1697,7 +1697,7 @@ static bool is_getfield_nonallocating(jl_datatype_t *ty, jl_value_t *fld)
         name = (jl_sym_t*)jl_fieldref(fld,0);
     }
     for(size_t i=0; i < jl_svec_len(ty->types); i++) {
-        if (!(ty->fields[i].isptr ||
+        if (!(jl_field_isptr(ty, i) ||
               (name && name != jl_field_name(ty,i)))) {
             return false;
         }
@@ -2470,7 +2470,7 @@ static Value *emit_known_call(jl_value_t *ff, jl_value_t **args, size_t nargs,
                     // TODO: attempt better codegen for approximate types
                     Value *strct = emit_expr(args[1], ctx);
                     Value *rhs;
-                    if (sty->fields[idx].isptr)
+                    if (jl_field_isptr(sty, idx))
                         rhs = emit_expr(args[3], ctx);
                     else
                         rhs = emit_unboxed(args[3], ctx);

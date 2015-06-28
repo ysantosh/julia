@@ -253,11 +253,11 @@ static int NOINLINE compare_fields(jl_value_t *a, jl_value_t *b, jl_datatype_t *
 {
     size_t nf = jl_datatype_nfields(dt);
     for (size_t f=0; f < nf; f++) {
-        size_t offs = dt->fields[f].offset;
+        size_t offs = jl_field_offset(dt, f);
         char *ao = (char*)jl_data_ptr(a) + offs;
         char *bo = (char*)jl_data_ptr(b) + offs;
         int eq;
-        if (dt->fields[f].isptr) {
+        if (jl_field_isptr(dt, f)) {
             jl_value_t *af = *(jl_value_t**)ao;
             jl_value_t *bf = *(jl_value_t**)bo;
             if (af == bf) eq = 1;
@@ -267,7 +267,7 @@ static int NOINLINE compare_fields(jl_value_t *a, jl_value_t *b, jl_datatype_t *
         else {
             jl_datatype_t *ft = (jl_datatype_t*)jl_field_type(dt, f);
             if (!ft->haspadding)
-                eq = bits_equal(ao, bo, dt->fields[f].size);
+                eq = bits_equal(ao, bo, jl_field_size(dt, f));
             else
                 eq = compare_fields((jl_value_t*)ao, (jl_value_t*)bo, ft);
         }
@@ -1134,15 +1134,15 @@ DLLEXPORT uptrint_t jl_object_id(jl_value_t *v)
         return bits_hash(jl_data_ptr(v), sz) ^ h;
     }
     for (size_t f=0; f < nf; f++) {
-        size_t offs = dt->fields[f].offset;
+        size_t offs = jl_field_offset(dt, f);
         char *vo = (char*)jl_data_ptr(v) + offs;
         uptrint_t u;
-        if (dt->fields[f].isptr) {
+        if (jl_field_isptr(dt, f)) {
             jl_value_t *f = *(jl_value_t**)vo;
             u = f==NULL ? 0 : jl_object_id(f);
         }
         else {
-            u = bits_hash(vo, dt->fields[f].size);
+            u = bits_hash(vo, jl_field_size(dt, f));
         }
         h = bitmix(h, u);
     }

@@ -1331,8 +1331,9 @@ static jl_value_t *jl_deserialize_value_(ios_t *s, jl_value_t *vtag, jl_value_t 
                backref_list.items[pos] = v;
             char *data = (char*)jl_data_ptr(v);
             for(i=0; i < nf; i++) {
-                jl_set_nth_field(v, i, jl_deserialize_value(s,
-                    (dt->fields[i].isptr) ? (jl_value_t**)(data+jl_field_offset(dt, i)) : NULL));
+                jl_set_nth_field(
+                    v, i, jl_deserialize_value(
+                        s, jl_field_isptr(dt, i) ? (jl_value_t**)(data+jl_field_offset(dt, i)) : NULL));
             }
             if ((mode == MODE_MODULE || mode == MODE_MODULE_LAMBDAS) && jl_is_mtable(v))
                 arraylist_push(&methtable_list, v);
