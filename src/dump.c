@@ -444,6 +444,7 @@ static void jl_serialize_datatype(ios_t *s, jl_datatype_t *dt)
     write_int32(s, dt->size);
     int has_instance = !!(dt->instance != NULL);
     write_uint8(s, dt->abstract | (dt->mutabl<<1) | (dt->pointerfree<<2) | (has_instance<<3));
+    write_int8(s, dt->fielddesc_type);
     if (!dt->abstract) {
         write_uint16(s, dt->ninitialized);
         if (mode != MODE_MODULE && mode != MODE_MODULE_LAMBDAS) {
@@ -455,7 +456,8 @@ static void jl_serialize_datatype(ios_t *s, jl_datatype_t *dt)
     if (nf > 0) {
         write_int32(s, dt->alignment);
         write_int8(s, dt->haspadding);
-        ios_write(s, (char*)&dt->fields[0], nf*sizeof(jl_fielddesc_t));
+        size_t fieldsize = _jl_fielddesc_size(dt->fielddesc_type);
+        ios_write(s, (char*)&dt->fields32[0], nf * fieldsize);
         jl_serialize_value(s, dt->types);
     }
 
@@ -915,6 +917,7 @@ static jl_value_t *jl_deserialize_datatype(ios_t *s, int pos, jl_value_t **loc)
     uint16_t nf = read_uint16(s);
     size_t size = read_int32(s);
     uint8_t flags = read_uint8(s);
+    uint8_t fielddesc_type = read_int8(s);
     jl_datatype_t *dt;
     if (tag == 2)
         dt = jl_int32_type;
@@ -923,7 +926,7 @@ static jl_value_t *jl_deserialize_datatype(ios_t *s, int pos, jl_value_t **loc)
     else if (tag == 4)
         dt = jl_int64_type;
     else
-        dt = jl_new_uninitialized_datatype(nf);
+        dt = jl_new_uninitialized_datatype(nf, fielddesc_type);
     dt->size = size;
     dt->struct_decl = NULL;
     dt->instance = NULL;
@@ -958,7 +961,8 @@ static jl_value_t *jl_deserialize_datatype(ios_t *s, int pos, jl_value_t **loc)
     if (nf > 0) {
         dt->alignment = read_int32(s);
         dt->haspadding = read_int8(s);
-        ios_read(s, (char*)&dt->fields[0], nf*sizeof(jl_fielddesc_t));
+        size_t fieldsize = _jl_fielddesc_size(fielddesc_type);
+        ios_read(s, (char*)&dt->fields32[0], nf * fieldsize);
         dt->types = (jl_svec_t*)jl_deserialize_value(s, (jl_value_t**)&dt->types);
         jl_gc_wb(dt, dt->types);
     }
