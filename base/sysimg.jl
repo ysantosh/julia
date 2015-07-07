@@ -205,6 +205,7 @@ importall .Enums
 # concurrency and parallelism
 include("serialize.jl")
 importall .Serializer
+include("channels.jl")
 include("multi.jl")
 include("managers.jl")
 
