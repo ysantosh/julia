@@ -1,3 +1,5 @@
+# This file is a part of Julia. License is MIT: http://julialang.org/license
+
 # helpers
 
 function exact_equal(x::SparseVector, y::SparseVector)

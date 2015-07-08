@@ -1,3 +1,4 @@
+# This file is a part of Julia. License is MIT: http://julialang.org/license
 
 # Sparse vector with compressed storage both indices and values.
 #
@@ -335,21 +336,21 @@ function map{Tx,Ty}(f, x::SparseVector{Tx}, y::StridedVector{Ty})
 end
 
 
-+ (x::SparseVector, y::SparseVector) = zero_preserve_map(AddFun(), x, y)
-- (x::SparseVector, y::SparseVector) = zero_preserve_map(SubFun(), x, y)
-+ (x::StridedVector, y::SparseVector) = map(AddFun(), x, y)
-- (x::StridedVector, y::SparseVector) = map(SubFun(), x, y)
-+ (x::SparseVector, y::StridedVector) = map(AddFun(), x, y)
-- (x::SparseVector, y::StridedVector) = map(SubFun(), x, y)
++(x::SparseVector, y::SparseVector) = zero_preserve_map(AddFun(), x, y)
+-(x::SparseVector, y::SparseVector) = zero_preserve_map(SubFun(), x, y)
++(x::StridedVector, y::SparseVector) = map(AddFun(), x, y)
+-(x::StridedVector, y::SparseVector) = map(SubFun(), x, y)
++(x::SparseVector, y::StridedVector) = map(AddFun(), x, y)
+-(x::SparseVector, y::StridedVector) = map(SubFun(), x, y)
 
-.+ (x::SparseVector, y::SparseVector) = (x + y)
-.- (x::SparseVector, y::SparseVector) = (x - y)
+.+(x::SparseVector, y::SparseVector) = (x + y)
+.-(x::SparseVector, y::SparseVector) = (x - y)
 
-.+ (x::StridedVector, y::SparseVector) = (x + y)
-.- (x::StridedVector, y::SparseVector) = (x - y)
+.+(x::StridedVector, y::SparseVector) = (x + y)
+.-(x::StridedVector, y::SparseVector) = (x - y)
 
-.+ (x::SparseVector, y::StridedVector) = (x + y)
-.- (x::SparseVector, y::StridedVector) = (x - y)
+.+(x::SparseVector, y::StridedVector) = (x + y)
+.-(x::SparseVector, y::StridedVector) = (x - y)
 
 
 sum(x::SparseVector) = sum(x.nzval)

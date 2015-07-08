@@ -103,6 +103,7 @@ export
     SharedArray,
     SharedMatrix,
     SharedVector,
+    SparseVector,
     SparseMatrixCSC,
     StatStruct,
     StepRange,

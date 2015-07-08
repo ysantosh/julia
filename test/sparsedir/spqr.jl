@@ -2,8 +2,8 @@
 
 using Base.Test
 
-using Base.Sparse.SPQR
-using Base.Sparse.CHOLMOD
+using Base.SparseMatrix.SPQR
+using Base.SparseMatrix.CHOLMOD
 
 m, n = 100, 10
 nn = 100

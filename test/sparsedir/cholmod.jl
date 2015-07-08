@@ -3,7 +3,7 @@
 srand(123)
 using Base.Test
 
-using Base.Sparse.CHOLMOD
+using Base.SparseMatrix.CHOLMOD
 
 # based on deps/SuiteSparse-4.0.2/CHOLMOD/Demo/
 
@@ -318,8 +318,8 @@ for elty in (Float64, Complex{Float64})
     A1pdSparse = CHOLMOD.Sparse(
         A1pd.m,
         A1pd.n,
-        Base.Sparse.decrement(A1pd.colptr),
-        Base.Sparse.decrement(A1pd.rowval),
+        Base.SparseMatrix.decrement(A1pd.colptr),
+        Base.SparseMatrix.decrement(A1pd.rowval),
         A1pd.nzval)
 
     ## High level interface
