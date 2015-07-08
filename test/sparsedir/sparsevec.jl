@@ -41,13 +41,14 @@ x2 = SparseVector(8, [1, 2, 6, 7], [3.25, 4.0, -5.5, -6.0])
 @test nnz(x) == 3
 @test nonzeros(x) == [1.25, -0.75, 3.5]
 
-dct = Dict{Int,Float64}()
-dct[2] = 1.25
-dct[5] = -0.75
-dct[6] = 3.5
-xc = SparseVector(8, dct)
-@test isa(xc, SparseVector{Float64,Int})
-@test exact_equal(x, xc)
+let dct = Dict{Int,Float64}()
+    dct[2] = 1.25
+    dct[5] = -0.75
+    dct[6] = 3.5
+    xc = SparseVector(8, dct)
+    @test isa(xc, SparseVector{Float64,Int})
+    @test exact_equal(x, xc)
+end
 
 # full
 
