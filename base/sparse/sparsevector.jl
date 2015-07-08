@@ -184,17 +184,15 @@ function showarray(io::IO, x::SparseVector;
         half_screen_rows = typemax(Int)
     end
     pad = ndigits(x.n)
-    k = 0
-
+    sep = "\n\t"
     for k = 1:length(x.nzind)
         if k < half_screen_rows || k > nnz(x)-half_screen_rows
             print(io, "\t", '[', rpad(x.nzind[k], pad), "]  =  ")
             showcompact(io, x.nzval[k])
-            print(io, "\n")
         elseif k == half_screen_rows
             print(io, sep, '\u22ee')
         end
-        k += 1
+        print(io, "\n")
     end
 end
 
