@@ -18,7 +18,7 @@ export
     BLAS,
     LAPACK,
     Serializer,
-    Sparse,
+    SparseMatrix,
     Docs,
     Markdown,
 
@@ -103,7 +103,6 @@ export
     SharedArray,
     SharedMatrix,
     SharedVector,
-    SparseVector,
     SparseMatrixCSC,
     StatStruct,
     StepRange,

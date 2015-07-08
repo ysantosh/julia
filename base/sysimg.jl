@@ -267,7 +267,7 @@ include("statistics.jl")
 
 # sparse matrices and sparse linear algebra
 include("sparse.jl")
-importall .Sparse
+importall .SparseMatrix
 
 # signal processing
 if USE_GPL_LIBS
