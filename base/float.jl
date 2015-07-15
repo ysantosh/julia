@@ -1,6 +1,10 @@
 # This file is a part of Julia. License is MIT: http://julialang.org/license
 
-## floating point traits ##
+## precision, as defined by the effective number of bits in the mantissa ##
+precision(::Type{Float16}) = 11
+precision(::Type{Float32}) = 24
+precision(::Type{Float64}) = 53
+precision{T<:FloatingPoint}(::T) = precision(T)
 
 const Inf16 = box(Float16,unbox(UInt16,0x7c00))
 const NaN16 = box(Float16,unbox(UInt16,0x7e00))
@@ -21,16 +25,24 @@ promote_rule(::Type{Float16}, ::Type{Bool}) = Float16
 for t1 in (Float32,Float64)
     for st in (Int8,Int16,Int32,Int64)
         @eval begin
-            convert(::Type{$t1},x::($st)) = box($t1,sitofp($t1,unbox($st,x)))
-            promote_rule(::Type{$t1}, ::Type{$st}  ) = $t1
+            round(::Type{$t1},x::($st)) = box($t1,sitofp($t1,unbox($st,x)))
+            promote_rule(::Type{$t1}, ::Type{$st}) = $t1
         end
     end
     for ut in (Bool,UInt8,UInt16,UInt32,UInt64)
         @eval begin
-            convert(::Type{$t1},x::($ut)) = box($t1,uitofp($t1,unbox($ut,x)))
-            promote_rule(::Type{$t1}, ::Type{$ut}  ) = $t1
+            round(::Type{$t1},x::($ut)) = box($t1,uitofp($t1,unbox($ut,x)))
+            promote_rule(::Type{$t1}, ::Type{$ut}) = $t1
         end
     end
+    @eval convert(::Type{$t1}, x::Bool) = round($t1,x)
+end
+
+function convert{T<:Union{Float32,Float64}}(::Type{T},
+    x::Union{Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Int128, UInt128})
+    y = round(T, x)
+    z = unsafe_trunc(typeof(x), y)
+    x == z ? y : throw(InexactError())
 end
 
 promote_rule(::Type{Float64}, ::Type{UInt128}) = Float64
@@ -38,7 +50,7 @@ promote_rule(::Type{Float64}, ::Type{Int128}) = Float64
 promote_rule(::Type{Float32}, ::Type{UInt128}) = Float32
 promote_rule(::Type{Float32}, ::Type{Int128}) = Float32
 
-function convert(::Type{Float64}, x::UInt128)
+function round(::Type{Float64}, x::UInt128)
     x == 0 && return 0.0
     n = 128-leading_zeros(x) # ndigits0z(x,2)
     if n <= 53
@@ -52,7 +64,7 @@ function convert(::Type{Float64}, x::UInt128)
     reinterpret(Float64, d + y)
 end
 
-function convert(::Type{Float64}, x::Int128)
+function round(::Type{Float64}, x::Int128)
     x == 0 && return 0.0
     s = ((x >>> 64) % UInt64) & 0x8000_0000_0000_0000 # sign bit
     x = abs(x) % UInt128
@@ -68,7 +80,7 @@ function convert(::Type{Float64}, x::Int128)
     reinterpret(Float64, s | d + y)
 end
 
-function convert(::Type{Float32}, x::UInt128)
+function round(::Type{Float32}, x::UInt128)
     x == 0 && return 0f0
     n = 128-leading_zeros(x) # ndigits0z(x,2)
     if n <= 24
@@ -82,7 +94,7 @@ function convert(::Type{Float32}, x::UInt128)
     reinterpret(Float32, d + y)
 end
 
-function convert(::Type{Float32}, x::Int128)
+function round(::Type{Float32}, x::Int128)
     x == 0 && return 0f0
     s = ((x >>> 96) % UInt32) & 0x8000_0000 # sign bit
     x = abs(x) % UInt128
@@ -272,20 +284,20 @@ for Ti in (Int64,UInt64,Int128,UInt128)
 
             function <(x::$Ti, y::$Tf)
                 fx = ($Tf)(x)
-                (fx < y) | ((fx == y) & ((fx == $(Tf(typemax(Ti)))) | (x < unsafe_trunc($Ti,fx)) ))
+                (fx < y) | ((fx == y) & ((fx == $(round(Tf,typemax(Ti)))) | (x < unsafe_trunc($Ti,fx)) ))
             end
             function <=(x::$Ti, y::$Tf)
                 fx = ($Tf)(x)
-                (fx < y) | ((fx == y) & ((fx == $(Tf(typemax(Ti)))) | (x <= unsafe_trunc($Ti,fx)) ))
+                (fx < y) | ((fx == y) & ((fx == $(round(Tf,typemax(Ti)))) | (x <= unsafe_trunc($Ti,fx)) ))
             end
 
             function <(x::$Tf, y::$Ti)
                 fy = ($Tf)(y)
-                (x < fy) | ((x == fy) & (fy < $(Tf(typemax(Ti)))) & (unsafe_trunc($Ti,fy) < y))
+                (x < fy) | ((x == fy) & (fy < $(round(Tf,typemax(Ti)))) & (unsafe_trunc($Ti,fy) < y))
             end
             function <=(x::$Tf, y::$Ti)
                 fy = ($Tf)(y)
-                (x < fy) | ((x == fy) & (fy < $(Tf(typemax(Ti)))) & (unsafe_trunc($Ti,fy) <= y))
+                (x < fy) | ((x == fy) & (fy < $(round(Tf,typemax(Ti)))) & (unsafe_trunc($Ti,fy) <= y))
             end
         end
     end
@@ -324,12 +336,6 @@ hash(x::Float64, h::UInt) = isnan(x) ? (hx_NaN $ h) : hx(box(UInt64,fptoui(unbox
 hash(x::Union{Bool,Char,Int8,UInt8,Int16,UInt16,Int32,UInt32}, h::UInt) = hash(Int64(x), h)
 hash(x::Float32, h::UInt) = hash(Float64(x), h)
 
-## precision, as defined by the effective number of bits in the mantissa ##
-precision(::Type{Float16}) = 11
-precision(::Type{Float32}) = 24
-precision(::Type{Float64}) = 53
-precision{T<:FloatingPoint}(::T) = precision(T)
-
 function float_lex_order(f::Integer, delta::Integer)
     # convert from signed magnitude to 2's complement and back
     neg = f < 0
@@ -354,12 +360,12 @@ for Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UIn
     for Tf in (Float32, Float64)
         if sizeof(Ti) < sizeof(Tf) || Ti <: Unsigned # Tf(typemin(Ti))-1 is exact
             @eval function trunc(::Type{$Ti},x::$Tf)
-                $(Tf(typemin(Ti))-one(Tf)) < x < $(Tf(typemax(Ti))+one(Tf)) || throw(InexactError())
+                $(round(Tf,typemin(Ti))-one(Tf)) < x < $(round(Tf,typemax(Ti))+one(Tf)) || throw(InexactError())
                 unsafe_trunc($Ti,x)
             end
         else
             @eval function trunc(::Type{$Ti},x::$Tf)
-                $(Tf(typemin(Ti))) <= x < $(Tf(typemax(Ti))) || throw(InexactError())
+                $(round(Tf,typemin(Ti))) <= x < $(round(Tf,typemax(Ti))) || throw(InexactError())
                 unsafe_trunc($Ti,x)
             end
         end
