@@ -84,6 +84,8 @@ Language changes
 
   * `String` is renamed to `AbstractString` ([#8872]).
 
+  * `FloatingPoint` is renamed to `AbstractFloat` ([#12162]).
+
   * `None` is deprecated; use `Union{}` instead ([#8423]).
 
   * `Nothing` (the type of `nothing`) is renamed to `Void` ([#8423]).
@@ -1511,3 +1513,4 @@ Too numerous to mention.
 [#11922]: https://github.com/JuliaLang/julia/issues/11922
 [#11985]: https://github.com/JuliaLang/julia/issues/11985
 [#12031]: https://github.com/JuliaLang/julia/issues/12031
+[#12162]: https://github.com/JuliaLang/julia/issues/12162

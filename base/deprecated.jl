@@ -654,3 +654,6 @@ function getindex{T<:Union{Char,Number}}(::Type{T}, r1::Range, rs::Range...)
     end
     return a
 end
+
+const FloatingPoint = AbstractFloat
+export FloatingPoint
