@@ -22,7 +22,7 @@ function coerce(T::Type, x)
     if T<:Rational
         convert(T, coerce(typeof(num(zero(T))), x))
     elseif !(T<:Integer)
-        convert(T, x)
+        round(T, x)
     else
         x % T
     end
@@ -30,7 +30,7 @@ end
 
 for T=types[2:end], x=vals
     a = coerce(T,x)
-    @test hash(a,zero(UInt)) == invoke(hash, Tuple{Real, UInt}, a, zero(UInt))
+    @test hash(a, zero(UInt)) == invoke(hash, Tuple{Real, UInt}, a, zero(UInt))
 end
 
 for T=types, S=types, x=vals

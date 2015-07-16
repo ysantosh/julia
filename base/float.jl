@@ -38,6 +38,9 @@ for t1 in (Float32,Float64)
     @eval convert(::Type{$t1}, x::Bool) = round($t1,x)
 end
 
+round(::Type{Float64}, x::Float32) = convert(Float64, x)
+round{T<:FloatingPoint}(::Type{T}, x::T) = x
+
 function convert{T<:Union{Float32,Float64}}(::Type{T},
     x::Union{Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Int128, UInt128})
     y = round(T, x)
@@ -277,26 +280,26 @@ for Ti in (Int64,UInt64,Int128,UInt128)
     for Tf in (Float32,Float64)
         @eval begin
             function ==(x::$Tf, y::$Ti)
-                fy = ($Tf)(y)
+                fy = round($Tf,y)
                 (x == fy) & (y == unsafe_trunc($Ti,fy))
             end
             ==(y::$Ti, x::$Tf) = x==y
 
             function <(x::$Ti, y::$Tf)
-                fx = ($Tf)(x)
+                fx = round($Tf,x)
                 (fx < y) | ((fx == y) & ((fx == $(round(Tf,typemax(Ti)))) | (x < unsafe_trunc($Ti,fx)) ))
             end
             function <=(x::$Ti, y::$Tf)
-                fx = ($Tf)(x)
+                fx = round($Tf,x)
                 (fx < y) | ((fx == y) & ((fx == $(round(Tf,typemax(Ti)))) | (x <= unsafe_trunc($Ti,fx)) ))
             end
 
             function <(x::$Tf, y::$Ti)
-                fy = ($Tf)(y)
+                fy = round($Tf,y)
                 (x < fy) | ((x == fy) & (fy < $(round(Tf,typemax(Ti)))) & (unsafe_trunc($Ti,fy) < y))
             end
             function <=(x::$Tf, y::$Ti)
-                fy = ($Tf)(y)
+                fy = round($Tf,y)
                 (x < fy) | ((x == fy) & (fy < $(round(Tf,typemax(Ti)))) & (unsafe_trunc($Ti,fy) <= y))
             end
         end
@@ -329,8 +332,8 @@ isinf(x::Real) = !isnan(x) & !isfinite(x)
 hx(a::UInt64, b::Float64, h::UInt) = hash_uint64((3a + reinterpret(UInt64,b)) - h)
 const hx_NaN = hx(UInt64(0), NaN, UInt(0  ))
 
-hash(x::UInt64,  h::UInt) = hx(x, Float64(x), h)
-hash(x::Int64,   h::UInt) = hx(reinterpret(UInt64,abs(x)), Float64(x), h)
+hash(x::UInt64,  h::UInt) = hx(x, round(Float64, x), h)
+hash(x::Int64,   h::UInt) = hx(reinterpret(UInt64,abs(x)), round(Float64, x), h)
 hash(x::Float64, h::UInt) = isnan(x) ? (hx_NaN $ h) : hx(box(UInt64,fptoui(unbox(Float64,abs(x)))), x, h)
 
 hash(x::Union{Bool,Char,Int8,UInt8,Int16,UInt16,Int32,UInt32}, h::UInt) = hash(Int64(x), h)

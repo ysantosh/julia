@@ -46,9 +46,9 @@ function steprange_last{T}(start::T, step, stop)
             if T<:Signed && (diff > zero(diff)) != (stop > start)
                 # handle overflowed subtraction with unsigned rem
                 if diff > zero(diff)
-                    remain = -convert(T, unsigned(-diff) % step)
+                    remain = -round(T, unsigned(-diff) % step)
                 else
-                    remain = convert(T, unsigned(diff) % step)
+                    remain = round(T, unsigned(diff) % step)
                 end
             else
                 remain = steprem(start,stop,step)

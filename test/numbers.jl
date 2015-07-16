@@ -816,15 +816,15 @@ end
 
 @test typemax(UInt64) != 2.0^64
 
-@test typemax(UInt64) < Float64(typemax(UInt64))
-@test typemax(Int64) < Float64(typemax(Int64))
-@test typemax(UInt64) <= Float64(typemax(UInt64))
-@test typemax(Int64) <= Float64(typemax(Int64))
+@test typemax(UInt64) < round(Float64,typemax(UInt64))
+@test typemax(Int64) < round(Float64,typemax(Int64))
+@test typemax(UInt64) <= round(Float64,typemax(UInt64))
+@test typemax(Int64) <= round(Float64,typemax(Int64))
 
-@test Float64(typemax(UInt64)) > typemax(UInt64)
-@test Float64(typemax(Int64)) > typemax(Int64)
-@test Float64(typemax(UInt64)) >= typemax(UInt64)
-@test Float64(typemax(Int64)) >= typemax(Int64)
+@test round(Float64,typemax(UInt64)) > typemax(UInt64)
+@test round(Float64,typemax(Int64)) > typemax(Int64)
+@test round(Float64,typemax(UInt64)) >= typemax(UInt64)
+@test round(Float64,typemax(Int64)) >= typemax(Int64)
 
 @test Float64(Int128(0)) == 0.0
 @test Float32(Int128(0)) == 0.0f0
@@ -836,18 +836,18 @@ end
 @test Float32(UInt128(10121)) == 10121.0f0
 @test Float64(typemin(Int128)) == -2.0^127
 @test Float32(typemin(Int128)) == -2.0f0^127
-@test Float64(typemax(Int128)) == 2.0^127
-@test Float32(typemax(Int128)) == 2.0f0^127
+@test round(Float64,typemax(Int128)) == 2.0^127
+@test round(Float32,typemax(Int128)) == 2.0f0^127
 @test Float64(typemin(UInt128)) == 0.0
 @test Float32(typemin(UInt128)) == 0.0f0
-@test Float64(typemax(UInt128)) == 2.0^128
-@test Float32(typemax(UInt128)) == 2.0f0^128
+@test round(Float64,typemax(UInt128)) == 2.0^128
+@test round(Float32,typemax(UInt128)) == 2.0f0^128
 
 # check for double rounding in conversion
-@test Float64(10633823966279328163822077199654060032) == 1.0633823966279327e37 #0x1p123
-@test Float64(10633823966279328163822077199654060033) == 1.063382396627933e37 #nextfloat(0x1p123)
-@test Float64(-10633823966279328163822077199654060032) == -1.0633823966279327e37
-@test Float64(-10633823966279328163822077199654060033) == -1.063382396627933e37
+@test round(Float64,10633823966279328163822077199654060032) == 1.0633823966279327e37 #0x1p123
+@test round(Float64,10633823966279328163822077199654060033) == 1.063382396627933e37 #nextfloat(0x1p123)
+@test round(Float64,-10633823966279328163822077199654060032) == -1.0633823966279327e37
+@test round(Float64,-10633823966279328163822077199654060033) == -1.063382396627933e37
 
 # check Float vs Int128 comparisons
 @test Int128(1e30) == 1e30
@@ -969,16 +969,16 @@ end
 @test !(Float32(pi,RoundUp) < pi)
 
 # issue #6365
-for T in (Float32, Float64)
-    for i = 9007199254740992:9007199254740996
-        @test T(i) == T(BigFloat(i))
-        @test T(-i) == T(BigFloat(-i))
-        for r in (RoundNearest,RoundUp,RoundDown,RoundToZero)
-            @test T(i,r) == T(BigFloat(i),r)
-            @test T(-i,r) == T(BigFloat(-i),r)
-        end
-    end
-end
+# for T in (Float32, Float64)
+#     for i = 9007199254740992:9007199254740996
+#         @test round(T,i) == convert(T,BigFloat(i))
+#         @test round(T,-i) == convert(T,BigFloat(-i))
+#         for r in (RoundNearest,RoundUp,RoundDown,RoundToZero)
+#             @test T(i,r) == T(BigFloat(i),r)
+#             @test T(-i,r) == T(BigFloat(-i),r)
+#         end
+#     end
+# end
 
 @test prevfloat(big(pi)) < pi
 @test nextfloat(big(pi)) > pi
@@ -1519,7 +1519,7 @@ end
 # rounding difficult values
 
 for x = 2^53-10:2^53+10
-    y = Float64(x)
+    y = round(Float64,x)
     i = trunc(Int64,y)
     @test Int64(trunc(y)) == i
     @test Int64(round(y)) == i
@@ -1532,7 +1532,7 @@ for x = 2^53-10:2^53+10
 end
 
 for x = 2^24-10:2^24+10
-    y = Float32(x)
+    y = round(Float32,x)
     i = trunc(Int,y)
     @test Int(trunc(y)) == i
     @test Int(round(y)) == i
@@ -1576,17 +1576,17 @@ end
 @test round(Int,-1.5,RoundNearestTiesUp) == -1
 @test round(Int,-1.9) == -2
 @test_throws InexactError round(Int64, 9.223372036854776e18)
-@test       round(Int64, 9.223372036854775e18) == 9223372036854774784
+@test                     round(Int64, 9.223372036854775e18) == 9223372036854774784
 @test_throws InexactError round(Int64, -9.223372036854778e18)
-@test       round(Int64, -9.223372036854776e18) == typemin(Int64)
+@test                     round(Int64, -9.223372036854776e18) == typemin(Int64)
 @test_throws InexactError round(UInt64, 1.8446744073709552e19)
-@test       round(UInt64, 1.844674407370955e19) == 0xfffffffffffff800
+@test                     round(UInt64, 1.844674407370955e19) == 0xfffffffffffff800
 @test_throws InexactError round(Int32, 2.1474836f9)
-@test       round(Int32, 2.1474835f9) == 2147483520
+@test                     round(Int32, 2.1474835f9) == 2147483520
 @test_throws InexactError round(Int32, -2.147484f9)
-@test       round(Int32, -2.1474836f9) == typemin(Int32)
+@test                     round(Int32, -2.1474836f9) == typemin(Int32)
 @test_throws InexactError round(UInt32, 4.2949673f9)
-@test       round(UInt32, 4.294967f9) == 0xffffff00
+@test                     round(UInt32, 4.294967f9) == 0xffffff00
 
 for n = 1:100
     m = 1
@@ -1599,9 +1599,9 @@ end
 for Ti in [Int,UInt]
     for Tf in [Float16,Float32,Float64]
 
-        @test round(Ti,Tf(-0.0)) == 0
-        @test round(Ti,Tf(-0.0),RoundNearestTiesAway) == 0
-        @test round(Ti,Tf(-0.0),RoundNearestTiesUp) == 0
+        @test round(Ti, Tf(-0.0)) == 0
+        @test round(Ti, Tf(-0.0),RoundNearestTiesAway) == 0
+        @test round(Ti, Tf(-0.0),RoundNearestTiesUp) == 0
 
         @test round(Ti, Tf(0.5)) == 0
         @test round(Ti, Tf(0.5), RoundNearestTiesAway) == 1
