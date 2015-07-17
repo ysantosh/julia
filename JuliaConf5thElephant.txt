@@ -1,0 +1,22 @@
+What is Julia ?
+Julia is a high-level dynamic programming language like R/Python/MatLAB.
+It is designed to address the requirements of high-performance numerical and scientific computing
+Now also being effective for general purpose programming
+
+More Info
+http://julialang.org/
+Tutorial is IJulia, a collaboration between the IPython and Julia communities
+and provides a powerful browser-based graphical notebook interface to Julia.
+https://github.com/JuliaLang/Interact.jl
+
+Try julia
+https://juliabox.org/
+
+Another option
+https://try.jupyter.org/
+
+On https://juliabox.org/
+Try tutorial https://juliabox.org/notebooks/tutorial/Plotting%20in%20Julia.ipynb
+File -> New -> Julia
+paste the command and run (>) and see the output.
+
